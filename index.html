@@ -618,7 +618,7 @@ function clearForm(){
    CÁLCULOS (RF10, RNF06 — centralizado aqui)
 --------------------------------------------------------- */
 function computeDerived(f){
-  const saldo_final = f.saldo_inicial + f.entradas - f.saidas;
+  const saldo_final = f.saldo_inicial - f.saidas;
   const pct_saidas_entradas = f.entradas ? (f.saidas / f.entradas * 100) : 0;
   const totalComposicao = f.cmv + f.cf + f.cmo + f.opex + f.royalties;
   const baseComp = totalComposicao > 0 ? totalComposicao : f.saidas;
