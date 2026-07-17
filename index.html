@@ -300,6 +300,7 @@
             <div class="field-row"><label>Despesa prevista</label><input id="despesa_prevista" type="number" step="0.01"></div>
             <div class="field-row"><label>Despesas urgentes (semana)</label><input id="despesas_urgentes_semana" type="number" step="0.01"></div>
             <div class="field-row"><label>Data do saldo projetado (ex: 03/07)</label><input id="data_projetado" type="text"></div>
+            <div class="field-row"><label>Saldo projetado (informar manualmente)</label><input id="saldo_projetado" type="number" step="0.01"></div>
           </fieldset>
 
           <div class="save-row">
@@ -377,7 +378,7 @@ const FIELD_KEYS = [
   'cmv','cf','cmo','opex','royalties',
   'despesas_urgentes_hoje','limite_total','limite_disponivel',
   'periodo_semana','saldo_inicial_semana','receita_prevista','despesa_prevista',
-  'despesas_urgentes_semana','data_projetado'
+  'despesas_urgentes_semana','data_projetado','saldo_projetado'
 ];
 
 const NUMERIC_KEYS = FIELD_KEYS.filter(k => !['data_fechamento','periodo_semana','data_projetado'].includes(k));
@@ -517,6 +518,8 @@ function parsePastedText(text){
     if(norm.includes('saldo projetado')){
       const d = extractDate(line);
       if(d) found['data_projetado'] = d;
+      const v = extractValue(line);
+      if(v !== null) found['saldo_projetado'] = v;
       continue;
     }
     if(norm.includes('saldo inicial')){
@@ -575,7 +578,7 @@ const FIELD_LABELS = {
   saidas:'Saídas', cmv:'CMV', cf:'CF', cmo:'CMO', opex:'OPEX', royalties:'Royalties',
   despesas_urgentes_hoje:'Desp. urgentes (hoje)', limite_total:'Limite total', limite_disponivel:'Limite disp.',
   periodo_semana:'Período semana', saldo_inicial_semana:'Saldo inicial (semana)', receita_prevista:'Receita prevista',
-  despesa_prevista:'Despesa prevista', despesas_urgentes_semana:'Desp. urgentes (semana)', data_projetado:'Data projetado'
+  despesa_prevista:'Despesa prevista', despesas_urgentes_semana:'Desp. urgentes (semana)', data_projetado:'Data projetado', saldo_projetado:'Saldo projetado'
 };
 function renderRecognitionStatus(recognized, missing){
   const box = document.getElementById('recognition-status');
@@ -624,11 +627,10 @@ function computeDerived(f){
   const baseComp = totalComposicao > 0 ? totalComposicao : f.saidas;
   const pct = (v) => baseComp ? (v / baseComp * 100) : 0;
   const saldo_mais_limite = saldo_final + f.limite_disponivel;
-  const saldo_projetado = f.saldo_inicial_semana + f.receita_prevista - f.despesa_prevista - f.despesas_urgentes_semana;
   return {
     saldo_final, pct_saidas_entradas,
     pct_cmv: pct(f.cmv), pct_cf: pct(f.cf), pct_cmo: pct(f.cmo), pct_opex: pct(f.opex), pct_roy: pct(f.royalties),
-    saldo_mais_limite, saldo_projetado
+    saldo_mais_limite
   };
 }
 function fmtBRL(n){
@@ -706,7 +708,7 @@ function renderPreview(){
     </div>
     <div class="banner-green">
       <div class="lbl">SALDO PROJETADO<small>${f.data_projetado ? 'na sexta ' + escapeHtml(f.data_projetado) : ''}</small></div>
-      <div class="big">${fmtBRL(c.saldo_projetado)}</div>
+      <div class="big">${fmtBRL(f.saldo_projetado)}</div>
     </div>
   `;
 
@@ -745,7 +747,7 @@ Saldo inicial: ${fmtBRL(f.saldo_inicial_semana)}
 Receita prevista: + ${fmtBRL(f.receita_prevista)}
 Despesa prevista: − ${fmtBRL(f.despesa_prevista)}
 Despesas urgentes: ${fmtBRL(f.despesas_urgentes_semana)}
-🎯 *Saldo projetado${f.data_projetado ? ' (' + f.data_projetado + ')' : ''}: ${fmtBRL(c.saldo_projetado)}*`;
+🎯 *Saldo projetado${f.data_projetado ? ' (' + f.data_projetado + ')' : ''}: ${fmtBRL(f.saldo_projetado)}*`;
 }
 
 /* ---------------------------------------------------------
@@ -893,7 +895,7 @@ function renderHistory(){
           return `<tr>
             <td>${r.data_fechamento}</td>
             <td class="${c.saldo_final>=0?'status-pos':'status-neg'}">${fmtBRL(c.saldo_final)}</td>
-            <td>${fmtBRL(c.saldo_projetado)}</td>
+            <td>${fmtBRL(r.dados.saldo_projetado)}</td>
             <td>${escapeHtml(r.criado_por)}</td>
             <td>${r.atualizado_em !== r.criado_em ? new Date(r.atualizado_em).toLocaleDateString('pt-BR') + ' · ' + escapeHtml(r.atualizado_por) : '—'}</td>
             <td><button class="btn-ghost btn-sm" onclick="loadFechamentoIntoForm('${r.id}')">Abrir / editar</button></td>
